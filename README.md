@@ -4,8 +4,13 @@
 
 ### 文件
 
-|名字|用途| |--| -- | |Data.py|数据读取类，随机生成数据/从前人留下的xlsx中读取数据都用这个里面的类DataHandler做| |fft.py|内含DIF和DIT的基2FFT实现方法|
-|main.py|运行入口，目前用来测试| |plot.py|数据量化中，进行不同位数据SNR的测试方法| |src.py|包括：量化、SNR等方法|
+| 名字 | 用途 |
+| --- | --- |
+|Data.py|数据读取类，随机生成数据/从前人留下的xlsx中读取数据都用这个里面的类DataHandler做| 
+|fft.py|内含DIF和DIT的基2FFT实现方法|
+|main.py|运行入口，目前用来测试| 
+|plot.py|数据量化中，进行不同位数据SNR的测试方法| 
+|src.py|包括：量化、SNR等方法|
 
 ### 常用操作示例
 
