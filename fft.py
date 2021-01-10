@@ -10,7 +10,7 @@ from typing import List, Optional, Union
 from math import sqrt
 from src import complex_convert
 
-final_output_clip = [7, 7]
+final_output_clip = [9, 9]
 
 
 def fft(x: List[complex]):
@@ -46,7 +46,7 @@ def fft_rec(X):
         X[N // 2 + k] = even[k] - t
 
 
-def DIF_FFT(x: List[np.complex],
+def DIF_FFT(x: Union[List[np.complex], np.ndarray],
             int_bit: Union[list, int, None] = None,
             frac_bit: Union[list, int, None] = None
             ) -> np.ndarray:
@@ -107,7 +107,7 @@ def DIF_FFT_8(x: List[np.complex], int_bit: List, frac_bit: List) -> np.ndarray:
     return resort(fft_res)
 
 
-def DIF_stage1(x: List[np.complex]):
+def DIF_stage1(x: Union[np.ndarray, List[np.complex]]):
     assert len(x) == 8
 
     W = [1,
@@ -120,7 +120,7 @@ def DIF_stage1(x: List[np.complex]):
             x[i] + x[i + 4], (x[i] - x[i + 4]) * W[i]
 
 
-def DIF_stage2(x: List[np.complex]):
+def DIF_stage2(x: Union[np.ndarray, List[np.complex]]):
     assert len(x) == 8
 
     W = [1,
@@ -131,7 +131,7 @@ def DIF_stage2(x: List[np.complex]):
                 x[i * 4 + j] + x[i * 4 + j + 2], (x[i * 4 + j] - x[i * 4 + j + 2]) * W[j]
 
 
-def DIF_stage3(x: List[np.complex]):
+def DIF_stage3(x: Union[np.ndarray, List[np.complex]]):
     assert len(x) == 8
 
     for i in range(4):

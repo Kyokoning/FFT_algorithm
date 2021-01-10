@@ -9,6 +9,7 @@ import numpy as np
 from typing import List, Union
 import matplotlib.pyplot as plt
 from fft import fft
+import csv
 
 
 class DataHandler(object):
@@ -18,13 +19,12 @@ class DataHandler(object):
         self.test_input_imag = []
         self.test_output_real = []
         self.test_output_imag = []
-        # self.input_from_excel()
 
-    def gen_data(self, data_num:int=1, real:bool=False):
+    def gen_data(self, data_num: int = 1, real: bool = False):
         for _ in range(data_num):
-            self.random_data(real = real)
+            self.random_data(real=real)
 
-    def random_data(self, real = False):
+    def random_data(self, real=False):
         """
         随机地生成一个64位数据加入list中
         """
@@ -35,10 +35,14 @@ class DataHandler(object):
             input_imag = np.zeros(64)
         input = [np.complex(a, b) for a, b in zip(input_real, input_imag)]
         output_real, output_imag = self.fft_result(input)
-        self.test_input_real.append(input_real)
-        self.test_input_imag.append(input_imag)
-        self.test_output_real.append(output_real)
-        self.test_output_imag.append(output_imag)
+        self.test_input_real.append(np.array(input_real))
+        self.test_input_imag.append(np.array(input_imag))
+        self.test_output_real.append(np.array(output_real))
+        self.test_output_imag.append(np.array(output_imag))
+
+    def from_divide_list_to_complex(self):
+        return [a + 1j * b for a, b in zip(self.test_input_real, self.test_input_imag)], \
+               [a + 1j * b for a, b in zip(self.test_output_real, self.test_output_imag)]
 
     def input_from_excel(self):
         """
@@ -47,7 +51,7 @@ class DataHandler(object):
         with xlrd.open_workbook("DFT64test.xlsx") as f:
             length = len(self.read_col_from_excel(f, 1))
             self.test_input_real.append(self.read_col_from_excel(f, 1))
-            self.test_input_imag.append([0 for _ in range(length)])
+            self.test_input_imag.append(np.zeros(length))
             self.test_output_real.append(self.read_col_from_excel(f, 2))
             self.test_output_imag.append(self.read_col_from_excel(f, 3))
 
@@ -55,7 +59,7 @@ class DataHandler(object):
         sheet = workbook.sheet_by_index(0)
 
         col_value = sheet.col_slice(col, 1)
-        col_value = [x.value for x in col_value]
+        col_value = np.array([x.value for x in col_value])
         return col_value
 
     def fft_result(self, input_64: List[complex]) -> List[float]:
