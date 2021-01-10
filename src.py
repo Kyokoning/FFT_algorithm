@@ -21,9 +21,6 @@ def convert_to_fix(arr: np.ndarray, bit: int, bin_flag: bool = False) -> np.ndar
     """
     从Array[np.float]进行量化，量化大小为bit+1（有一位补码位）
     返回Array[int]格式的量化数字
-    ！！！！！！！！！！！！
-    在这里的错误
-    bit差别
     """
     arr1 = arr.copy().astype(np.float32)
     arr1[arr1 < 0] = 0.0
