@@ -95,13 +95,13 @@ def DIF_FFT_8(x: List[np.complex], int_bit: List, frac_bit: List) -> np.ndarray:
     assert len(int_bit) >= 3, len(frac_bit) >= 3
     fft_res = np.array(x)
     DIF_stage1(fft_res)
-    #print("stage1", fft_res)
+    # print("stage1", fft_res)
     fft_res = complex_convert(fft_res, int_bit[0], frac_bit[0])
     DIF_stage2(fft_res)
-    #print("stage2", fft_res)
+    # print("stage2", fft_res)
     fft_res = complex_convert(fft_res, int_bit[1], frac_bit[1])
     DIF_stage3(fft_res)
-    #print("stage3", fft_res)
+    # print("stage3", fft_res)
     fft_res = complex_convert(fft_res, int_bit[2], frac_bit[2])
 
     return resort(fft_res)
@@ -143,3 +143,14 @@ def resort(x: np.ndarray):
     assert len(x) >= 8
 
     return x[[0, 4, 2, 6, 1, 5, 3, 7]]
+
+
+def FFT_base_8(x: Union[np.ndarray, List[np.complex]]):
+    assert len(x) == 8
+
+    res = np.zeros_like(x, dtype = np.complex64)
+    W = (sqrt(2)/2)*(1-1j)
+    for i in range(8):
+        Wi = W**i
+        res[i] = sum([x[j]*Wi**j for j in range(8)])
+    return res
