@@ -4,7 +4,7 @@
 # @Time: 2021/1/5
 # @File: Data.py
 
-import xlrd
+# import xlrd
 import numpy as np
 from typing import List, Union
 import matplotlib.pyplot as plt

@@ -173,6 +173,26 @@ def from_divide_list_to_complex(real: List[np.ndarray], imag: List[np.ndarray]
                                 ) -> List[np.ndarray]:
     return [a + 1j * b for a, b in zip(real, imag)]
 
+def read_from_txt_groundtruth(file_name: str = "output_test_data.txt",
+                              N:int=8)-> List[np.ndarray]:
+    if not os.path.isfile(file_name):
+        raise FileExistsError
+    res = []
+    cnt = 0
+    with open(file_name, "r") as f:
+        for line in f:
+            if cnt==N:
+                cnt=0
+                res.append(np.array(temp_res))
+            if cnt ==0 or cnt==N:
+                temp_res = []
+            temp_res.append(np.complex(line.strip()))
+            cnt+=1
+        if cnt==N:
+            res.append(np.array(temp_res))
+    return res
+
+
 def read_from_txt(file_name:str = "output_data.txt", N:int=8
                   )->Tuple[List[str], List[str]]:
     """
@@ -201,11 +221,13 @@ def read_from_txt(file_name:str = "output_data.txt", N:int=8
 
 def from_complete_list_to_float(complete_list: List[str],
                                 int_bit: int=3,
-                                frac_bit: int=3)->np.ndarray:
+                                frac_bit: int=6)->np.ndarray:
     return np.array(list(map(
         lambda x:from_complete_str_to_float(x, int_bit, frac_bit),
         complete_list
     )))
+
+
 
 def from_complete_str_to_float(complete: str, int_bit: int=3,
                                frac_bit:int=9)->float:
