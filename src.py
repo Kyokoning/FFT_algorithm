@@ -6,6 +6,7 @@
 
 import numpy as np
 from typing import Tuple, List
+import os
 
 
 def SNR(signal: np.ndarray, gt: np.ndarray) -> float:
@@ -73,18 +74,42 @@ def from_dec_list_to_binary(x: np.ndarray) -> np.ndarray:
     """
     return np.array([int(np.binary_repr(val)) for val in x])
 
+def verilog_res(x: np.ndarray,
+                int_bit :int=0,
+                frac_bit:int=9)->Tuple[List[str], List[str]]:
+    """生成verilog测试的10位数据（包括符号位）"""
+    assert int_bit+frac_bit==9
+    real = np.real(x)*(2**frac_bit)
+    imag = np.imag(x)*(2**frac_bit)
+
+    real_int = np.array(real, dtype=np.int32)
+    imag_int = np.array(imag, dtype = np.int32)
+
+
+    for x, x_int in zip(np.real(x), real_int):
+        print(x, x_int, bin(x_int & (2**(int_bit+frac_bit+1)-1))[2:])
+    res_real = [bin(x & (2**(int_bit+frac_bit+1)-1))[2:] for x in real_int]
+    res_imag = [bin(x & (2**(int_bit+frac_bit+1)-1))[2:] for x in imag_int]
+
+    res_real = ['0'*(int_bit+frac_bit+1-len(x))+x for x in res_real]
+    res_imag = ['0'*(int_bit+frac_bit+1-len(x))+x for x in res_imag]
+
+    return res_real, res_imag
+
 
 def real_convert(x: np.ndarray,
                  frac_bit: int = 10,
                  int_bit: int = 10,
-                 bin_flag: bool = False) -> np.ndarray:
+                 bin_flag: bool = False,
+                 complement: bool = False) -> np.ndarray:
     """
-    实数的量化：小数和整数部分是分开的
+    实数的量化：小数和整数部分是分开的，
     :param x: 待转换64位数据
-    :param frac_bit: 小数长度
+    :param frac_bit: 小数长度(不算符号位
     :param int_bit: 整数长度
     :param bin_flag: 用来确定是返回bin还是返回十进制 bin的格式和前人xlsx中一致，
                 例子：-0.1001
+    :param complement: 置True返回补码格式QAQ 在bin_flag=True的时候生效
     """
     int_part, frac_part = divide_int_frac(x)
     int_part = fix_integer_part(int_part, int_bit, bin_flag)
@@ -131,6 +156,7 @@ def complex_convert(x: np.ndarray,
     return real + 1j * imag
 
 
+
 def complex_convert_list(x: List[np.ndarray],
                          int_bit: int = 10,
                          frac_bit: int = 10,
@@ -146,6 +172,50 @@ def complex_convert_list(x: List[np.ndarray],
 def from_divide_list_to_complex(real: List[np.ndarray], imag: List[np.ndarray]
                                 ) -> List[np.ndarray]:
     return [a + 1j * b for a, b in zip(real, imag)]
+
+def read_from_txt(file_name:str = "output_data.txt", N:int=8
+                  )->Tuple[List[str], List[str]]:
+    """
+    从文件读入数据(二进制那种)，返回Tuple第一位是real，第二位是imag，都是二进制格式
+    """
+    if not os.path.isfile(file_name):
+        raise FileExistsError
+    real_list, imag_list = [], []
+    cnt = 0
+    with open(file_name, 'r') as f:
+        for line in f:
+            if cnt==N:
+                cnt = 0
+                real_list.append(temp_real)
+                imag_list.append(temp_imag)
+            if cnt == 0 or cnt==N:
+                temp_real, temp_imag = [], []
+            real, imag = line.strip().split(' ')
+            temp_real.append(real)
+            temp_imag.append(imag)
+            cnt += 1
+    if cnt == N:
+        real_list.append(temp_real)
+        imag_list.append(temp_imag)
+    return real_list, imag_list
+
+def from_complete_list_to_float(complete_list: List[str],
+                                int_bit: int=3,
+                                frac_bit: int=3)->np.ndarray:
+    return np.array(list(map(
+        lambda x:from_complete_str_to_float(x, int_bit, frac_bit),
+        complete_list
+    )))
+
+def from_complete_str_to_float(complete: str, int_bit: int=3,
+                               frac_bit:int=9)->float:
+    """
+    从str格式表示的补码转换成float
+    """
+    if complete[0]=="0":
+        return int(complete, 2)/(2**frac_bit)
+    else:
+        return -(2**(int_bit+frac_bit+1)-int(complete, 2))/(2**frac_bit)
 
 
 class AverageMeter(object):
