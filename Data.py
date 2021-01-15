@@ -4,7 +4,7 @@
 # @Time: 2021/1/5
 # @File: Data.py
 
-# import xlrd
+import xlrd
 import numpy as np
 from typing import List, Union
 import matplotlib.pyplot as plt
@@ -20,19 +20,19 @@ class DataHandler(object):
         self.test_output_real = []
         self.test_output_imag = []
 
-    def gen_data(self, data_num: int = 1, N: int = 64, real: bool = False):
+    def gen_data(self, data_num: int = 1, n: int = 64, real: bool = False):
         for _ in range(data_num):
-            self.random_data(real=real, N = N)
+            self.random_data(real=real, n=n)
 
-    def random_data(self, real=False, N: int = 64):
+    def random_data(self, real: bool = False, n: int = 64):
         """
         随机地生成一个64位数据加入list中
         """
-        input_real = np.random.rand(N) * 2 - 1
+        input_real = np.random.rand(n) * 2 - 1
         if not real:
-            input_imag = np.random.rand(N) * 2 - 1
+            input_imag = np.random.rand(n) * 2 - 1
         else:
-            input_imag = np.zeros(N)
+            input_imag = np.zeros(n)
         input = [np.complex(a, b) for a, b in zip(input_real, input_imag)]
         output_real, output_imag = self.fft_result(input)
         self.test_input_real.append(np.array(input_real))
