@@ -223,15 +223,15 @@ def read_from_txt_groundtruth(file_name: str = "output_test_data.txt",
     return res
 
 
-def read_from_txt(file_name: str = "output_data.txt", N: int = 8
+def read_from_txt(file_name: str = "output_data.txt", N: int = 8,cut_in=False
                   ) -> Tuple[List[str], List[str]]:
     """
     从文件读入数据(二进制那种)，返回Tuple第一位是real，第二位是imag，都是二进制格式
     """
     if not os.path.isfile(file_name):
         raise FileExistsError
-    real_list, imag_list = [], []
     cnt = 0
+    real_list, imag_list = [], []
     with open(file_name, 'r') as f:
         for line in f:
             if cnt == N:
@@ -241,8 +241,12 @@ def read_from_txt(file_name: str = "output_data.txt", N: int = 8
             if cnt == 0 or cnt == N:
                 temp_real, temp_imag = [], []
             real, imag = line.strip().split(' ')
-            temp_real.append(real)
-            temp_imag.append(imag)
+            if not cut_in:
+                temp_real.append(real)
+                temp_imag.append(imag)
+            else:
+                temp_real.append(real[0]+real[2:5]+real[5:11])
+                temp_imag.append(imag[0]+imag[2:5]+imag[5:11])
             cnt += 1
     if cnt == N:
         real_list.append(temp_real)
@@ -319,9 +323,9 @@ def from_vivado_result_read_test(file: str = "VIVADO测试结果/iladata_basic1.
          text:'dout_re[9:0]',
          text:'dout_im[9:0]']"""
         real_unsigned = np.array([x.value for x in sheet.col_slice(real_col, start, end)],
-                                 dtype = np.int32)
+                                 dtype=np.int32)
         imag_unsigned = np.array([x.value for x in sheet.col_slice(imag_col, start, end)],
-                                 dtype = np.int32)
+                                 dtype=np.int32)
 
     return real_unsigned, imag_unsigned
 

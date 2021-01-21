@@ -60,23 +60,94 @@ def from_file_gen_fft_3_stage_test_file(dir:str = "fft_8bit_stage_divide"):
                 f2_number.writelines(str(fft2[j])+"\n")
                 f3_number.writelines(str(fft3[j])+"\n")
 
-
-def from_result_file_gen_snr():
+def from_basic_result_file_gen_snr():
     """
-    从verilog仿真文件得到硬件的snr
+    从basic的vivado输出文件（竟然还是excel）得到snr
+    每个文件只有一个数据请注意
     :return:
     """
-    pred_real, pred_imag = read_from_txt("补码/result_data_hard.txt")
+    start=326
+    end=326+64+1
+
+    input_real_unsigned, input_imag_unsigned = from_vivado_result_read_test(
+        file = "VIVADO测试结果/iladata_basic2.xlsx",
+        start=start, end=end
+    )
+    output_real_unsigned, output_imag_unsigned = from_vivado_result_read_test(
+        file = "VIVADO测试结果/iladata_basic2.xlsx",
+        start=514, end=578, real_col=8, imag_col=9
+    )
+    fft_bit = 64
+    f1 = open("VIVADO测试结果/随机输入_basic.txt", 'w')
+    f2 = open("VIVADO测试结果/输出结果_basic.txt", 'w')
+    f3 = open("VIVADO测试结果/使用python跑的输出_basic.txt", 'w')
+    times = end-64-start
+
+    output_real = from_aux_list_to_float(output_real_unsigned,
+                                         int_bit=5,
+                                         frac_bit=4)
+    output_imag = from_aux_list_to_float(output_imag_unsigned,
+                                         int_bit=5,
+                                         frac_bit=4)
+
+    output = output_real + 1j * output_imag
+    for j in range(64):
+        f2.writelines(str(output[j])+'\n')
+    print("=====================input==================")
+    for i in range(times):
+        input_real = from_aux_list_to_float(
+            input_real_unsigned[i:(i+64)],
+            int_bit=0, frac_bit=9
+        )
+        input_imag = from_aux_list_to_float(
+            input_imag_unsigned[i:(i+64)],
+            int_bit=0, frac_bit=9)
+        input = input_real + 1j * input_imag
+
+        gt = np.fft.fft(input)
+        # for j in range(64):
+        #     print(gt[j])
+
+
+
+        for j in range(64):
+            f1.writelines(str(input[j]) + "\n")
+            # f2.writelines(str(output[j]) + '\n')
+            f3.writelines(str(gt[j]) + "\n")
+
+        snr_single = SNR(output, gt)
+        print("start with index ", i+start, '\tSNR = ', snr_single)
+    # f1.close()
+    f2.close()
+    # f3.close()
+
+
+def from_result_file_gen_snr(file:str="补码/result_data_hard.txt",
+                             int_bit:int=3,
+                             frac_bit:int=6,
+                             resort_flag:bool = False,
+                             cut_in:bool=False):
+    """
+    从他们更新后的verilog仿真文件得到硬件的snr
+    :return:
+    """
+    from fft import resort
+    pred_real, pred_imag = read_from_txt(file, cut_in=cut_in)
     gt = read_from_txt_groundtruth("output_test_data.txt")
     snr = AverageMeter()
-    for i in range(len(gt)):
-        pred_real_float = from_complete_list_to_float(pred_real[i])
-        pred_imag_float = from_complete_list_to_float(pred_imag[i])
-        #print(pred_real_float+1j*pred_imag_float)
-        temp_snr = SNR(signal = pred_real_float+1j*pred_imag_float,
+    print(pred_imag)
+    for i in range(len(pred_real)):
+
+        pred_real_float = from_complete_list_to_float(pred_real[i], int_bit, frac_bit)
+        pred_imag_float = from_complete_list_to_float(pred_imag[i], int_bit, frac_bit)
+        if resort_flag:
+            res = resort(pred_real_float+1j*pred_imag_float)
+        else:
+            res = pred_real_float+1j*pred_imag_float
+        temp_snr = SNR(signal = res,
                        gt = gt[i])
         snr.update(temp_snr)
-        print(i, '\t', temp_snr, snr.average())
+        print(i, '\tsingle SNR: ', temp_snr, "\tAverage SNR: ",snr.average())
 
 def gen_verilog_test_file(data_num:int=1, fft_bit:int=8,
                           dir:str = "补码/"):
